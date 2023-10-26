@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
+import 'package:wasla_driver/Screens/Register/PersonalDetails.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -15,8 +16,13 @@ enum Acc { taxi, tow }
 
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController phoneController = TextEditingController(text: "+213");
+  TextEditingController passwordController = TextEditingController();
   Acc? type;
-  bool valid = false;
+  String verificationPin = "000000";
+  late AnimationController animationController;
+  bool phoneInvalid = false;
+  bool pinInvalid = false;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -30,23 +36,28 @@ class _RegisterPageState extends State<RegisterPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(
-                height: 200,
+              SizedBox(
+                height: type != null
+                    ? (MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top) *
+                        0.68
+                    : 300,
               ),
               Expanded(
-                  child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16)),
-                    color: Colors.grey,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16)),
+                      color: Colors.grey,
+                    ),
+                    child: type != null ? forms(context) : accountType(context),
                   ),
-                  child: type != null ? forms(context) : accountType(context),
                 ),
-              ))
+              )
             ],
           ),
         ),
@@ -96,61 +107,28 @@ class _RegisterPageState extends State<RegisterPage> {
           ],
         ),
         const SizedBox(
-          height: 40,
-        ),
-        const Text(
-          "Account Details",
-          style: TextStyle(fontSize: 16),
-        ),
-        const SizedBox(
-          height: 60,
+          height: 30,
         ),
         SizedBox(
           width: 300,
-          child: Form(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 20),
-                TextFormField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: "Phone Number",
-                    )),
-                const SizedBox(height: 20),
-                TextFormField(
-                    decoration: InputDecoration(
-                  labelText: "Password",
-                )),
-                const SizedBox(height: 20),
-                TextFormField(
-                    decoration: InputDecoration(
-                  labelText: "Confirm Password",
-                )),
-                const SizedBox(height: 90),
-                ElevatedButton(
-                    style: ButtonStyle(
-                        minimumSize: MaterialStatePropertyAll(Size(200, 50))),
-                    onPressed: () {
-                      if (RegExp(r'^\+213\d{9}')
-                          .hasMatch(phoneController.text)) {
-                        setState(() {
-                          valid = true;
-                        });
-                      } else {
-                        setState(() {
-                          valid = false;
-                        });
-                      }
-                      _showPinPopUp();
-                    },
-                    child: const Text("Next"))
-              ],
-            ),
-          ),
-        )
+          child: TextFormField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                  labelText: "Phone Number",
+                  labelStyle: TextStyle(
+                      color: phoneInvalid ? Colors.red : Colors.black))),
+        ),
+        const SizedBox(
+          height: 30,
+        ),
+        ElevatedButton(
+            style: const ButtonStyle(
+                minimumSize: MaterialStatePropertyAll(Size(200, 50))),
+            onPressed: () {
+              _validate();
+            },
+            child: const Text("Next"))
       ],
     );
   }
@@ -160,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
         context: context,
         builder: (context) => AlertDialog(
             title: const Text("Verfiy Phone Number"),
-            content: Container(
+            content: SizedBox(
                 width: 250,
                 height: 250,
                 child: Column(
@@ -174,10 +152,19 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(
                         height: 20,
                       ),
-                      PinInputTextField(
-                          decoration: CirclePinDecoration(
-                              strokeColorBuilder:
-                                  const FixedColorBuilder(Colors.black))),
+                      SizedBox(
+                          child: PinInputTextField(
+                        onChanged: (value) {
+                          _checkPIN(value);
+                        },
+                        onSubmit: (value) {
+                          _checkPIN(value);
+                        },
+                        decoration: CirclePinDecoration(
+                          strokeColorBuilder: FixedColorBuilder(
+                              pinInvalid ? Colors.red : Colors.black),
+                        ),
+                      )),
                       const SizedBox(
                         height: 40,
                       ),
@@ -185,15 +172,17 @@ class _RegisterPageState extends State<RegisterPage> {
                         textAlign: TextAlign.center,
                         text: TextSpan(
                           children: [
-                            TextSpan(
+                            const TextSpan(
                                 text: "Didn't receive a text?\n",
                                 style: TextStyle(color: Colors.black)),
-                            WidgetSpan(child: SizedBox(height: 30)),
+                            const WidgetSpan(child: SizedBox(height: 30)),
                             TextSpan(
                                 recognizer: TapGestureRecognizer()
-                                  ..onTap = () {},
+                                  ..onTap = () {
+                                    // resend pin
+                                  },
                                 text: "Resend",
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: Colors.red,
                                     decoration: TextDecoration.underline))
                           ],
@@ -226,7 +215,7 @@ class _RegisterPageState extends State<RegisterPage> {
           height: 60,
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -265,6 +254,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
               ),
+              const SizedBox(width: 20),
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -307,5 +297,43 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ],
     );
+  }
+
+  _checkPIN(String value) {
+    if (value.length == 6) {
+      if (value == verificationPin) {
+        setState(() {
+          pinInvalid = false;
+        });
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RegisterDetails(
+                number: phoneController.text.substring(4),
+                type: type!,
+              ),
+            ));
+      } else {
+        // invalid pin
+        setState(() {
+          pinInvalid = true;
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Wrong Pin Try Again")));
+      }
+    }
+  }
+
+  _validate() {
+    if (RegExp(r'^\+213\d{9}').hasMatch(phoneController.text)) {
+      setState(() {
+        phoneInvalid = false;
+      });
+      _showPinPopUp();
+    } else {
+      setState(() {
+        phoneInvalid = true;
+      });
+    }
   }
 }
