@@ -1,5 +1,9 @@
-import 'package:animated_icon_button/animated_icon_button.dart';
 import 'package:flutter/material.dart';
+import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:wasla_driver/Screens/ButtonPage.dart';
+import 'package:wasla_driver/Screens/HistoryPage.dart';
+import 'package:wasla_driver/Screens/SettingsPage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,72 +13,87 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool isOn = false;
+  Position? userPosition;
+  List<Widget Function()> pages = [
+    () => ButtonPage(),
+    () => HistoryPage(),
+    () => SettingsPage()
+  ];
+  int _index = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _handleLocationPermission();
+  }
+
+  getUserPosition() async {
+    if (userPosition == null) {
+      Position? location;
+      try {
+        location = await Geolocator.getCurrentPosition();
+      } catch (e) {
+        // Handle any errors that may occur when getting the location.
+        print("Error getting user location: $e");
+      }
+      if (mounted) {
+        setState(() {
+          userPosition = location!;
+        });
+      }
+    }
+  }
+
+  Future<bool> _handleLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location services are disabled. Please enable the services')));
+      Future.delayed(
+          const Duration(seconds: 30), () => _handleLocationPermission());
+      return false;
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')));
+        Future.delayed(
+            const Duration(seconds: 2), () => _handleLocationPermission());
+        return false;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location permissions are permanently denied, please enable it from settings.')));
+      Future.delayed(
+          const Duration(seconds: 2), () => _handleLocationPermission());
+      return false;
+    }
+    getUserPosition();
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(""),
-          actions: [
-            GestureDetector(
-              child: const Icon(
-                Icons.menu,
-                color: Colors.black,
-                size: 30,
-              ),
-            )
+        bottomNavigationBar: FloatingNavbar(
+          onTap: (int val) => setState(() => _index = val),
+          currentIndex: _index,
+          items: [
+            FloatingNavbarItem(icon: Icons.home, title: 'Home'),
+            FloatingNavbarItem(icon: Icons.history, title: 'History'),
+            FloatingNavbarItem(icon: Icons.settings, title: 'Settings'),
           ],
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: <Color>[Colors.black.withOpacity(0.3), Colors.white]),
-            ),
-          ),
         ),
-        body: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 500),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: isOn
-                      ? const Color.fromARGB(255, 115, 207, 118)
-                      : Colors.blue, // Change shadow color here
-                  blurRadius: 10,
-                  spreadRadius: isOn ? 20 : 0, // Control shadow spread
-                ),
-              ],
-            ),
-            child: AnimatedIconButton(
-              size: 100,
-              onPressed: () {
-                setState(() {
-                  isOn = !isOn;
-                });
-              },
-              duration: const Duration(milliseconds: 500),
-              splashColor: Colors.green,
-              icons: const <AnimatedIconItem>[
-                AnimatedIconItem(
-                  backgroundColor: Colors.black,
-                  icon: Icon(Icons.power_settings_new_outlined,
-                      color: Colors.purple),
-                ),
-                AnimatedIconItem(
-                  backgroundColor: Colors.black,
-                  icon: Icon(Icons.close, color: Colors.purple),
-                ),
-              ],
-            ),
-          ),
-          // AnimatedIconButton
-        ),
+        body: pages[_index](),
       ),
     );
   }
