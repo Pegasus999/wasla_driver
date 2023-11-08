@@ -1,14 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:wasla_driver/Constants.dart';
+import 'package:wasla_driver/Models/Driver.dart';
+import 'package:wasla_driver/Models/Trip.dart';
+import 'package:wasla_driver/Services/API.dart';
 
 class HistoryPage extends StatefulWidget {
-  const HistoryPage({super.key});
+  const HistoryPage({super.key, required this.user});
+  final Driver user;
 
   @override
   State<HistoryPage> createState() => _HistoryPageState();
 }
 
 class _HistoryPageState extends State<HistoryPage> {
+  List<Trip> trips = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getTrips();
+  }
+
+  getTrips() async {
+    try {
+      final list = await API.getTrips(context, widget.user.id);
+      if (list != null) {
+        setState(() {
+          trips = list;
+        });
+      }
+    } catch (e) {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: Text("ERROR"),
+                content: SizedBox(
+                  height: 200,
+                  child: Center(child: Text(e.toString())),
+                ),
+              ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -28,14 +62,18 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
         const SizedBox(height: 20),
         Expanded(
-          child: ListView.separated(
-            separatorBuilder: (context, index) => const Divider(
-              color: Colors.transparent,
-              height: 40,
-            ),
-            itemBuilder: (context, index) => _trip(index),
-            itemCount: 5,
-          ),
+          child: trips.isNotEmpty
+              ? ListView.separated(
+                  separatorBuilder: (context, index) => const Divider(
+                    color: Colors.transparent,
+                    height: 40,
+                  ),
+                  itemBuilder: (context, index) => _trip(index),
+                  itemCount: trips.length,
+                )
+              : const Center(
+                  child: Text("You have no trips yet"),
+                ),
         )
       ],
     );
@@ -49,7 +87,8 @@ class _HistoryPageState extends State<HistoryPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: Colors.red, borderRadius: BorderRadius.circular(30)),
+            color: Constants.mainLight,
+            borderRadius: BorderRadius.circular(30)),
         child: Column(
           children: [
             Row(
@@ -62,18 +101,17 @@ class _HistoryPageState extends State<HistoryPage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.black),
+                        color: Constants.secondaryLight),
                     child: Row(
                       children: [
                         Icon(
                           Icons.person,
                           size: 23,
-                          color: Colors.white,
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          "Client full Name",
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                          "${trips[index].client.firstName} ${trips[index].client.lastName}",
+                          style: TextStyle(fontSize: 18),
                         )
                       ],
                     ),
@@ -85,7 +123,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.blue),
+                        color: Constants.secondaryDarker),
                     child: Row(
                       children: [
                         Icon(
@@ -94,7 +132,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          "0556996758",
+                          "0${trips[index].client.phoneNumber}",
                           style: TextStyle(fontSize: 18),
                         )
                       ],
@@ -117,7 +155,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.grey),
+                        color: Constants.mainLighter),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -151,7 +189,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.grey),
+                        color: Constants.mainLighter),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +204,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                         const SizedBox(height: 30),
                         Text(
-                          "800 DA",
+                          "${trips[index].cost} DA",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w500),
                         )
@@ -178,7 +216,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.grey),
+                        color: Constants.mainLighter),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

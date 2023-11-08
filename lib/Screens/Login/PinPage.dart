@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wasla_driver/Screens/HomePage.dart';
 
 class PinCodePage extends StatefulWidget {
-  const PinCodePage({super.key});
-
+  const PinCodePage({super.key, required this.user});
+  final user;
   @override
   State<PinCodePage> createState() => PinCodePageState();
 }
 
 class PinCodePageState extends State<PinCodePage> {
   String? pin;
+  String? password;
+
+  @override
+  void initState() {
+    super.initState();
+    getPin();
+  }
+
+  getPin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? str = await prefs.getString("pin");
+    if (str != null) {
+      setState(() {
+        password = str;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -34,7 +54,8 @@ class PinCodePageState extends State<PinCodePage> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: SizedBox(
-                        width: MediaQuery.of(context).size.width - 150,
+                        width: MediaQuery.of(context).size.width -
+                            (MediaQuery.of(context).size.width * 0.4),
                         height: 150,
                         child: Center(
                           child: ListView.builder(
@@ -75,7 +96,6 @@ class PinCodePageState extends State<PinCodePage> {
                           backgroundColor:
                               MaterialStatePropertyAll(Colors.transparent)),
                       onPressed: () {
-                        // Handle button press (you can use onPressed to perform actions)
                         if (pin != null) {
                           if (pin!.length != 1) {
                             setState(() {
@@ -124,7 +144,7 @@ class PinCodePageState extends State<PinCodePage> {
                             pin = number;
                           });
                         }
-                        print(pin!.length);
+                        check();
                       },
                       child: Text(number,
                           style: const TextStyle(
@@ -136,6 +156,22 @@ class PinCodePageState extends State<PinCodePage> {
             ),
           )),
     );
+  }
+
+  check() {
+    if (pin != null) {
+      if (pin!.length == 6) {
+        if (pin == "123456") {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(user: widget.user),
+              ));
+        } else {
+          print("object");
+        }
+      }
+    }
   }
 
   _circle(int index) {

@@ -1,83 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:floating_bottom_navigation_bar/floating_bottom_navigation_bar.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:wasla_driver/Models/Driver.dart';
+import 'package:wasla_driver/Models/Trip.dart';
 import 'package:wasla_driver/Screens/ButtonPage.dart';
 import 'package:wasla_driver/Screens/HistoryPage.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:wasla_driver/Screens/Orders/OrderPage.dart';
 import 'package:wasla_driver/Screens/SettingsPage.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
+  HomePage({super.key, required this.user});
+  final Driver user;
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  Position? userPosition;
-  List<Widget Function()> pages = [
-    () => ButtonPage(),
-    () => HistoryPage(),
-    () => SettingsPage()
+  List<Widget Function(Driver user, IO.Socket socket)> pages = [
+    (user, socket) => ButtonPage(
+          user: user,
+          socket: socket,
+        ),
+    (user, socket) => HistoryPage(user: user),
+    (user, socket) => SettingsPage()
   ];
   int _index = 0;
+  late IO.Socket socket;
 
   @override
   void initState() {
+    initSocket();
     // TODO: implement initState
     super.initState();
-    _handleLocationPermission();
+    setListener();
   }
 
-  getUserPosition() async {
-    if (userPosition == null) {
-      Position? location;
-      try {
-        location = await Geolocator.getCurrentPosition();
-      } catch (e) {
-        // Handle any errors that may occur when getting the location.
-        print("Error getting user location: $e");
-      }
-      if (mounted) {
-        setState(() {
-          userPosition = location!;
-        });
-      }
-    }
+  setListener() {
+    socket.on("rideRequest", (data) {
+      print("object");
+      Trip trip = Trip.fromJson(data['trip']);
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderPage(
+              trip: trip,
+              user: widget.user,
+              socket: socket,
+            ),
+          ));
+    });
   }
 
-  Future<bool> _handleLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location services are disabled. Please enable the services')));
-      Future.delayed(
-          const Duration(seconds: 30), () => _handleLocationPermission());
-      return false;
-    }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Location permissions are denied')));
-        Future.delayed(
-            const Duration(seconds: 2), () => _handleLocationPermission());
-        return false;
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Location permissions are permanently denied, please enable it from settings.')));
-      Future.delayed(
-          const Duration(seconds: 2), () => _handleLocationPermission());
-      return false;
-    }
-    getUserPosition();
-    return true;
+  initSocket() {
+    socket = IO.io("http://172.20.10.5:5000", {
+      "transports": ['websocket'],
+      "autoConnect": false
+    });
+    socket.connect();
+    // socket!.emit("add", widget.user.id);
+    socket.emit("add", {"userId": widget.user.id});
   }
 
   @override
@@ -93,7 +75,7 @@ class _HomePageState extends State<HomePage> {
             FloatingNavbarItem(icon: Icons.settings, title: 'Settings'),
           ],
         ),
-        body: pages[_index](),
+        body: pages[_index](widget.user, socket),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wasla_driver/Screens/HomePage.dart';
-import 'package:wasla_driver/Screens/Orders/OrderPage.dart';
+import 'package:wasla_driver/Screens/Login/PhoneLogin.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +11,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: OrderPage());
+    return MaterialApp(debugShowCheckedModeBanner: false, home: PhoneLogin());
   }
 }

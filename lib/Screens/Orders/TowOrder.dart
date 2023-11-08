@@ -8,7 +8,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wasla_driver/Constants.dart';
 import 'package:wasla_driver/Screens/HomePage.dart';
-import 'package:wasla_driver/Services/API.dart';
 
 class TowOrder extends StatefulWidget {
   const TowOrder({super.key});
@@ -31,7 +30,6 @@ class _TowOrderState extends State<TowOrder> {
   @override
   void initState() {
     super.initState();
-    getTrip();
     getUserPosition();
     polylinePoints = PolylinePoints();
   }
@@ -52,13 +50,6 @@ class _TowOrderState extends State<TowOrder> {
         });
       }
     }
-  }
-
-  getTrip() async {
-    LatLng location = await API.getClientLocation();
-    setState(() {
-      clientPosition = location;
-    });
   }
 
   @override
@@ -266,11 +257,7 @@ class _TowOrderState extends State<TowOrder> {
               const SizedBox(height: 20),
               ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HomePage(),
-                        ));
+                    Navigator.pop(context);
                   },
                   child: const Text("End Trip"))
             ],
@@ -331,11 +318,7 @@ class _TowOrderState extends State<TowOrder> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomePage(),
-                  )),
+              onTap: () => Navigator.pop(context),
               child: const CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.red,
@@ -383,11 +366,7 @@ class _TowOrderState extends State<TowOrder> {
                 children: [
                   GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(),
-                            ));
+                        Navigator.pop(context);
                       },
                       child: const CircleAvatar(
                         radius: 30,

@@ -7,11 +7,20 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wasla_driver/Constants.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:wasla_driver/Models/Driver.dart';
+import 'package:wasla_driver/Models/Trip.dart';
 import 'package:wasla_driver/Screens/HomePage.dart';
-import 'package:wasla_driver/Services/API.dart';
 
 class OrderPage extends StatefulWidget {
-  const OrderPage({super.key});
+  const OrderPage(
+      {super.key,
+      required this.trip,
+      required this.socket,
+      required this.user});
+  final Trip trip;
+  final Driver user;
+  final IO.Socket socket;
   @override
   State<OrderPage> createState() => _OrderPageState();
 }
@@ -25,16 +34,48 @@ class _OrderPageState extends State<OrderPage> {
   bool arrived = false;
   bool onRoad = false;
   Set<Marker> _markers = Set<Marker>();
-  List<LatLng> points = [];
   Set<Polyline> _polylines = Set<Polyline>();
   late PolylinePoints polylinePoints;
+  Timer? timer;
+  int secondsElapsed = 0;
+
+  // Start the timer when the first function is called
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      secondsElapsed++;
+    });
+  }
+
+  // Stop the timer and get the elapsed time when the second function is called
+  void stopTimer() {
+    if (timer != null && timer!.isActive) {
+      timer!.cancel();
+    } else {
+      print('Timer is not running.');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    getTrip();
     getUserPosition();
+    setListeners();
     polylinePoints = PolylinePoints();
+  }
+
+  setListeners() {
+    widget.socket.on("rideCancel", (data) {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(user: widget.user),
+          ));
+    });
+  }
+
+  acceptRide() {
+    widget.socket.emit(
+        "rideAccept", {"tripId": widget.trip.id, "userId": widget.user.id});
   }
 
   getUserPosition() async {
@@ -55,13 +96,6 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  getTrip() async {
-    List<LatLng> list = await API.getClient();
-    setState(() {
-      points = list;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -80,22 +114,28 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _map() {
-    return GoogleMap(
-      markers: _markers,
-      polylines: _polylines,
-      mapType: MapType.normal,
-      initialCameraPosition:
-          CameraPosition(target: LatLng(36.805537, 7.713936), zoom: 15),
-      onMapCreated: (controller) {
-        _controller.complete(controller);
-        setPolylines();
-      },
-    );
+    return userPosition != null
+        ? GoogleMap(
+            markers: _markers,
+            polylines: _polylines,
+            mapType: MapType.normal,
+            initialCameraPosition: CameraPosition(
+                target: LatLng(widget.trip.pickUpLocationLatitude,
+                    widget.trip.pickUpLocationLongtitude),
+                zoom: 15),
+            onMapCreated: (controller) {
+              _controller.complete(controller);
+              setPolylines();
+            },
+          )
+        : const Center(
+            child: CircularProgressIndicator(),
+          );
   }
 
   void openGoogleMaps() async {
     final String googleMapsUrl =
-        'https://www.google.com/maps/dir/?api=1&destination=${points[0].latitude},${points[0].longitude}';
+        'https://www.google.com/maps/dir/?api=1&destination=${widget.trip.pickUpLocationLatitude},${widget.trip.pickUpLocationLongtitude}';
 
     if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
       await launchUrl(Uri.parse(googleMapsUrl));
@@ -110,10 +150,19 @@ class _OrderPageState extends State<OrderPage> {
       _markers = Set();
       _markers.addAll([
         Marker(
+            markerId: MarkerId("you"),
+            position: LatLng(userPosition!.latitude, userPosition!.longitude),
+            icon: BitmapDescriptor.defaultMarkerWithHue(100)),
+        Marker(
             markerId: MarkerId('client'),
-            position: points[0],
+            position: LatLng(widget.trip.pickUpLocationLatitude,
+                widget.trip.pickUpLocationLongtitude),
             icon: BitmapDescriptor.defaultMarkerWithHue(150)),
-        Marker(markerId: MarkerId('destinationPin'), position: points[1])
+        Marker(
+          markerId: MarkerId('destinationPin'),
+          position: LatLng(widget.trip.destinationLatitude,
+              widget.trip.destinationLongtitude),
+        )
       ]);
     });
   }
@@ -121,8 +170,10 @@ class _OrderPageState extends State<OrderPage> {
   void setPolylines() async {
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       Constants.apiKey,
-      PointLatLng(points[0].latitude, points[0].longitude),
-      PointLatLng(points[1].latitude, points[1].longitude),
+      PointLatLng(widget.trip.pickUpLocationLatitude,
+          widget.trip.pickUpLocationLongtitude),
+      PointLatLng(
+          widget.trip.destinationLatitude, widget.trip.destinationLongtitude),
     );
     List<LatLng> polylineCoordinates = [];
     if (result.status == 'OK') {
@@ -134,11 +185,13 @@ class _OrderPageState extends State<OrderPage> {
         _markers.addAll([
           Marker(
               markerId: const MarkerId('client'),
-              position: points[0],
+              position: LatLng(widget.trip.pickUpLocationLatitude,
+                  widget.trip.pickUpLocationLongtitude),
               icon: BitmapDescriptor.defaultMarkerWithHue(100)),
           Marker(
             markerId: const MarkerId('destinationPin'),
-            position: points[1],
+            position: LatLng(widget.trip.destinationLatitude,
+                widget.trip.destinationLongtitude),
           )
         ]);
         _polylines.add(Polyline(
@@ -181,7 +234,7 @@ class _OrderPageState extends State<OrderPage> {
       }
       double length = calculatePolylineLength(polylineCoordinates);
       print(length);
-      if (length < 100) {
+      if (length < 200) {
         if (!arrived) {
           setState(() {
             arrived = true;
@@ -216,6 +269,12 @@ class _OrderPageState extends State<OrderPage> {
       });
     }
     getUserPosition();
+    widget.socket.emit("driverLocationUpdate", {
+      "clientId": widget.trip.clientId,
+      "userId": widget.user.id,
+      "latitude": userPosition!.latitude,
+      "longtitude": userPosition!.longitude
+    });
     if (!arrived || onRoad) {
       Future.delayed(const Duration(minutes: 2), () => editPolylines(point));
     }
@@ -245,10 +304,10 @@ class _OrderPageState extends State<OrderPage> {
 
   String calculateDistance() {
     const double radius = 6371; // Earth's radius in kilometers
-    final double lat1 = points[0].latitude;
-    final double lon1 = points[0].longitude;
-    final double lat2 = points[1].latitude;
-    final double lon2 = points[1].longitude;
+    final double lat1 = userPosition!.latitude;
+    final double lon1 = userPosition!.longitude;
+    final double lat2 = widget.trip.destinationLatitude;
+    final double lon2 = widget.trip.destinationLongtitude;
 
     final double dLat = (lat2 - lat1) * (3.141592653589793 / 180);
     final double dLon = (lon2 - lon1) * (3.141592653589793 / 180);
@@ -281,11 +340,11 @@ class _OrderPageState extends State<OrderPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => HomePage(),
-                        ));
+                    widget.socket.emit("endRide", {
+                      "tripId": widget.trip.id,
+                      "duration": "${secondsElapsed / 60} "
+                    });
+                    Navigator.pop(context);
                   },
                   child: const Text("End Trip"))
             ],
@@ -317,7 +376,9 @@ class _OrderPageState extends State<OrderPage> {
                           Future.delayed(
                             const Duration(milliseconds: 500),
                             () {
-                              editPolylines(points[1]);
+                              editPolylines(LatLng(
+                                  widget.trip.destinationLatitude,
+                                  widget.trip.destinationLongtitude));
                             },
                           );
                         },
@@ -340,7 +401,7 @@ class _OrderPageState extends State<OrderPage> {
           height: 10,
           color: Colors.transparent,
         ),
-        Text(points.isNotEmpty ? calculateDistance() : ""),
+        Text(userPosition != null ? calculateDistance() : ""),
         const Divider(
           height: 20,
           color: Colors.transparent,
@@ -350,11 +411,9 @@ class _OrderPageState extends State<OrderPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomePage(),
-                  )),
+              onTap: () {
+                Navigator.pop(context);
+              },
               child: const CircleAvatar(
                 radius: 30,
                 backgroundColor: Colors.red,
@@ -367,7 +426,9 @@ class _OrderPageState extends State<OrderPage> {
                   setState(() {
                     accepted = true;
                   });
-                  editPolylines(points[0]);
+                  acceptRide();
+                  editPolylines(LatLng(widget.trip.pickUpLocationLatitude,
+                      widget.trip.pickUpLocationLongtitude));
                 }
               },
               child: const CircleAvatar(
@@ -382,15 +443,16 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  Column order() {
+  order() {
     return !arrived
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                "Client name",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                "${widget.trip.client.firstName} ${widget.trip.client.lastName}",
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const Divider(
                 height: 40,
@@ -402,11 +464,9 @@ class _OrderPageState extends State<OrderPage> {
                 children: [
                   GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomePage(),
-                            ));
+                        widget.socket
+                            .emit("cancelRide", {"tripId": widget.trip.id});
+                        Navigator.pop(context);
                       },
                       child: const CircleAvatar(
                         radius: 30,
@@ -423,9 +483,7 @@ class _OrderPageState extends State<OrderPage> {
                         child: FaIcon(FontAwesomeIcons.route),
                       )),
                   GestureDetector(
-                    onTap: () {
-                      // call user
-                    },
+                    onTap: () {},
                     child: const CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.green,
