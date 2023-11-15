@@ -70,6 +70,8 @@ class _ButtonPageState extends State<ButtonPage>
         print("Error getting user location: $e");
       }
       if (mounted) {
+        print(location!.latitude);
+        print(location!.longitude);
         setState(() {
           userPosition = location!;
         });
