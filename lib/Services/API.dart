@@ -5,8 +5,8 @@ import 'package:wasla_driver/Models/Driver.dart';
 import 'package:wasla_driver/Models/Trip.dart';
 
 class API {
-  static String base_url = "https://waslaandk.onrender.com/api/";
-  // static String base_url = "http://172.20.10.5:5000/api/";
+  // static String base_url = "https://waslaandk.onrender.com/api/";
+  static String base_url = "http://10.0.2.2:5000/api/";
 
   static Future login(BuildContext context, String phoneNumber) async {
     try {
@@ -65,6 +65,24 @@ class API {
     }
   }
 
+  static Future getIncome(BuildContext context, String id) async {
+    try {
+      final headers = {'Content-Type': 'application/json'};
+      final url = Uri.parse('${base_url}driver/getIncome');
+      final body = jsonEncode({"id": id});
+      final response = await http.post(url, headers: headers, body: body);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return json['active'];
+      }
+    } catch (err) {
+      print(err);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Error occured")));
+      return false;
+    }
+  }
+
   static Future turnOn(BuildContext context, bool active, String id) async {
     try {
       final headers = {'Content-Type': 'application/json'};
@@ -83,6 +101,7 @@ class API {
       }
     } catch (err) {
       print(err);
+
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Error occured")));
       return !active;

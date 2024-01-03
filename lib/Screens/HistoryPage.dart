@@ -31,15 +31,17 @@ class _HistoryPageState extends State<HistoryPage> {
         });
       }
     } catch (e) {
-      showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: Text("ERROR"),
-                content: SizedBox(
-                  height: 200,
-                  child: Center(child: Text(e.toString())),
-                ),
-              ));
+      if (mounted) {
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text("ERROR"),
+                  content: SizedBox(
+                    height: 200,
+                    child: Center(child: Text(e.toString())),
+                  ),
+                ));
+      }
     }
   }
 
@@ -151,7 +153,6 @@ class _HistoryPageState extends State<HistoryPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    width: 110,
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
@@ -163,20 +164,25 @@ class _HistoryPageState extends State<HistoryPage> {
                       children: [
                         FaIcon(FontAwesomeIcons.clock),
                         const SizedBox(height: 10),
-                        Text(
+                        const Text(
                           "Date / Time",
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          "28/11/2023",
-                          style: TextStyle(fontSize: 16, color: Colors.black),
+                          trips.isNotEmpty
+                              ? trips[index].date.split('T')[0]
+                              : "",
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.black),
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          "17:20",
-                          style: TextStyle(
+                          trips.isNotEmpty
+                              ? trips[index].date.split('T')[1].split('.')[0]
+                              : "",
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Colors.black,
                           ),
@@ -185,7 +191,6 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   Container(
-                    width: 110,
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
@@ -212,7 +217,6 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   Container(
-                    width: 110,
                     height: 150,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
@@ -232,7 +236,9 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                         const SizedBox(height: 30),
                         Text(
-                          "20 min",
+                          trips.isNotEmpty
+                              ? "${trips[index].duration!.split('.')[0]} min"
+                              : "",
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w500),
                         )

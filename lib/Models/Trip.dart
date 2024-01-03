@@ -5,12 +5,14 @@ class Trip {
   String id = '';
   String clientId = '';
   String? driverId;
+  String? duration;
   double pickUpLocationLatitude = 0;
   double pickUpLocationLongtitude = 0;
   double destinationLatitude = 0;
   double destinationLongtitude = 0;
   Driver? driver;
   int cost = 0;
+  String date;
   Client client;
 
   Trip(
@@ -20,8 +22,10 @@ class Trip {
       required this.pickUpLocationLongtitude,
       required this.cost,
       required this.destinationLatitude,
+      required this.date,
       required this.client,
       required this.destinationLongtitude,
+      this.duration,
       this.driverId,
       this.driver});
 
@@ -29,6 +33,8 @@ class Trip {
     return Trip(
         clientId: json['clientId'],
         cost: json['cost'],
+        date: json['date'],
+        duration: json['duration'],
         destinationLatitude: json['destinationLatitude'],
         destinationLongtitude: json['destinationLongtitude'],
         id: json['id'],

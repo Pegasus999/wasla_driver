@@ -6,6 +6,7 @@ class Driver {
   String licensePlate = '';
   String carBrand = '';
   String carName = '';
+  int wilaya;
   bool active;
   iDriver type = iDriver.taxi;
 
@@ -14,6 +15,7 @@ class Driver {
       required this.firstName,
       required this.lastName,
       required this.active,
+      required this.wilaya,
       required this.phoneNumber,
       required this.licensePlate,
       required this.carBrand,
@@ -23,6 +25,7 @@ class Driver {
     return Driver(
         id: json['id'],
         firstName: json['firstName'],
+        wilaya: json['wilaya'],
         lastName: json['lastName'],
         active: json['active'],
         carBrand: json['carBrand'],

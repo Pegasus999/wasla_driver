@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:wasla_driver/Constants.dart';
 import 'package:wasla_driver/Models/Driver.dart';
 import 'package:wasla_driver/Screens/Login/PinPage.dart';
@@ -17,18 +18,69 @@ class _PhoneLoginState extends State<PhoneLogin> {
   Driver? user;
   bool loading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _handleLocationPermission();
+  }
+
+  Future<bool> _handleLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location services are disabled. Please enable the services')));
+      Future.delayed(
+          const Duration(seconds: 30), () => _handleLocationPermission());
+      return false;
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are denied')));
+        Future.delayed(
+            const Duration(seconds: 2), () => _handleLocationPermission());
+        return false;
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Location permissions are permanently denied, please enable it from settings.')));
+      Future.delayed(
+          const Duration(seconds: 2), () => _handleLocationPermission());
+      return false;
+    }
+
+    return true;
+  }
+
   _login() async {
-    final result = await API.login(context, phoneController.text);
-    if (result != null) {
+    if (loading == false) {
       setState(() {
-        user = result;
+        loading = true;
       });
-      if (user != null) {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PinCodePage(user: user!),
-            ));
+      final result = await API.login(context, phoneController.text);
+      if (result != null) {
+        setState(() {
+          user = result;
+        });
+        if (user != null) {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PinCodePage(user: user!),
+              ));
+        }
+      }
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
       }
     }
   }
@@ -110,6 +162,11 @@ class _PhoneLoginState extends State<PhoneLogin> {
                                     FilteringTextInputFormatter.digitsOnly,
                                     LengthLimitingTextInputFormatter(9),
                                   ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      phoneController.text = value;
+                                    });
+                                  },
                                   decoration: InputDecoration(
                                       border: InputBorder.none,
                                       contentPadding:
@@ -130,18 +187,14 @@ class _PhoneLoginState extends State<PhoneLogin> {
                         child: ElevatedButton(
                           onPressed: () async {
                             if (phoneController.text.length == 9) {
-                              setState(() {
-                                loading = true;
-                              });
                               _login();
-                              setState(() {
-                                loading = false;
-                              });
                             }
                           },
                           style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStatePropertyAll(Constants.main),
+                              backgroundColor: phoneController.text.length == 9
+                                  ? MaterialStatePropertyAll(Constants.main)
+                                  : MaterialStatePropertyAll(
+                                      Constants.main.withOpacity(0.4)),
                               shape: MaterialStatePropertyAll(
                                   RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16))),

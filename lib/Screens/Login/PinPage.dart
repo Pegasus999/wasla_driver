@@ -21,7 +21,7 @@ class PinCodePageState extends State<PinCodePage> {
 
   getPin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? str = await prefs.getString("pin");
+    String? str = prefs.getString("pin");
     if (str != null) {
       setState(() {
         password = str;
@@ -54,15 +54,10 @@ class PinCodePageState extends State<PinCodePage> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: SizedBox(
-                        width: MediaQuery.of(context).size.width -
-                            (MediaQuery.of(context).size.width * 0.4),
                         height: 150,
-                        child: Center(
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (context, index) => _circle(index),
-                            itemCount: 6,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(6, (index) => _circle(index)),
                         ),
                       ),
                     ),
@@ -169,6 +164,8 @@ class PinCodePageState extends State<PinCodePage> {
               ));
         } else {
           print("object");
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text("Wrong Pin")));
         }
       }
     }
