@@ -164,6 +164,9 @@ class PinCodePageState extends State<PinCodePage> {
               ));
         } else {
           print("object");
+          setState(() {
+            pin = null;
+          });
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text("Wrong Pin")));
         }

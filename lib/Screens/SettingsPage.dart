@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:wasla_driver/Models/Driver.dart';
+import 'package:wasla_driver/Screens/Login/PhoneLogin.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
-
+  const SettingsPage({super.key, required this.user});
+  final Driver user;
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -23,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Column(
               children: [
                 ProfilePicture(
-                  name: 'Aditya Dharmawan Saputra',
+                  name: "${widget.user.firstName} ${widget.user.lastName}",
                   radius: 50,
                   fontsize: 24,
                 ),
@@ -98,7 +100,15 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
             GestureDetector(
-              child: Row(
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PhoneLogin(),
+                    ),
+                    (route) => false);
+              },
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -107,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: Colors.red,
                     size: 30,
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Text(
                     "Log Out",
                     style: TextStyle(

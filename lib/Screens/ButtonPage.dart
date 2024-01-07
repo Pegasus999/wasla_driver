@@ -5,6 +5,7 @@ import 'package:animated_icon_button/animated_icon_button.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:wasla_driver/Constants.dart';
 import 'package:wasla_driver/Models/Driver.dart';
 import 'package:wasla_driver/Services/API.dart';
 
@@ -194,15 +195,15 @@ class _ButtonPageState extends State<ButtonPage>
                     duration: const Duration(milliseconds: 500),
                     initialIcon: !isOn ? 0 : 1,
                     splashColor: Colors.green,
-                    icons: const <AnimatedIconItem>[
+                    icons: <AnimatedIconItem>[
                       AnimatedIconItem(
                         backgroundColor: Colors.black,
                         icon: Icon(Icons.power_settings_new_outlined,
-                            color: Colors.purple),
+                            color: Constants.main),
                       ),
                       AnimatedIconItem(
                         backgroundColor: Colors.black,
-                        icon: Icon(Icons.close, color: Colors.purple),
+                        icon: Icon(Icons.close, color: Constants.mainLight),
                       ),
                     ],
                   ),

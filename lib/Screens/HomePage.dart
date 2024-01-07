@@ -12,7 +12,6 @@ import 'package:wasla_driver/Screens/Orders/OrderPage.dart';
 import 'package:wasla_driver/Screens/SettingsPage.dart';
 import 'package:wasla_driver/Services/API.dart';
 import 'package:http/http.dart' as http;
-import 'package:wasla_driver/main.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({super.key, required this.user});
@@ -28,7 +27,7 @@ class _HomePageState extends State<HomePage> {
           socket: socket,
         ),
     (user, socket) => HistoryPage(user: user),
-    (user, socket) => SettingsPage()
+    (user, socket) => SettingsPage(user: user)
   ];
   int _index = 0;
   bool order = false;

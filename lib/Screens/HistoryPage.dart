@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wasla_driver/Constants.dart';
 import 'package:wasla_driver/Models/Driver.dart';
 import 'package:wasla_driver/Models/Trip.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wasla_driver/Services/API.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -89,7 +91,7 @@ class _HistoryPageState extends State<HistoryPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: Constants.mainLight,
+            color: Constants.secondary,
             borderRadius: BorderRadius.circular(30)),
         child: Column(
           children: [
@@ -103,10 +105,10 @@ class _HistoryPageState extends State<HistoryPage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.secondaryLight),
+                        color: Constants.secondaryDarker),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.person,
                           size: 23,
                         ),
@@ -125,10 +127,10 @@ class _HistoryPageState extends State<HistoryPage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.secondaryDarker),
+                        color: Constants.main),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.phone,
                           size: 23,
                         ),
@@ -146,17 +148,18 @@ class _HistoryPageState extends State<HistoryPage> {
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () {
-                showPopUp();
+                showPopUp(index);
               },
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     height: 150,
+                    width: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.mainLighter),
+                        color: Constants.secondaryDarker),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -169,7 +172,7 @@ class _HistoryPageState extends State<HistoryPage> {
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
                         Text(
                           trips.isNotEmpty
                               ? trips[index].date.split('T')[0]
@@ -192,9 +195,10 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                   Container(
                     height: 150,
+                    width: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.mainLighter),
+                        color: Constants.secondaryDarker),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -218,9 +222,10 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                   Container(
                     height: 150,
+                    width: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.mainLighter),
+                        color: Constants.secondaryDarker),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -236,7 +241,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                         const SizedBox(height: 30),
                         Text(
-                          trips.isNotEmpty
+                          trips.isNotEmpty && trips[index].duration != null
                               ? "${trips[index].duration!.split('.')[0]} min"
                               : "",
                           style: TextStyle(
@@ -254,13 +259,13 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
-  showPopUp() {
+  showPopUp(int index) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         content: Container(
           width: 200,
-          height: 400,
+          height: 200,
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -271,41 +276,22 @@ class _HistoryPageState extends State<HistoryPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Client full name",
+                "${trips[index].client.firstName} ${trips[index].client.lastName}",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 20),
-              Text("28 / 10 / 2023"),
+              Text(trips.isNotEmpty ? trips[index].date.split('T')[0] : ""),
               const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Trip :",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "17:30",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              Text("7QsEwm,Sidi Amar,Annaba"),
-              const SizedBox(height: 20),
-              FaIcon(FontAwesomeIcons.arrowDown),
-              const SizedBox(height: 20),
-              Text(
-                "17:50",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              Text("7UtRq,Sidi Amar,Annaba"),
               const SizedBox(height: 30),
               CircleAvatar(
                 radius: 30,
                 child: IconButton(
                   onPressed: () {
-                    print("hehe");
+                    openGoogleMaps(
+                        LatLng(trips[index].pickUpLocationLatitude,
+                            trips[index].pickUpLocationLongtitude),
+                        LatLng(trips[index].destinationLatitude,
+                            trips[index].destinationLongtitude));
                   },
                   icon: FaIcon(
                     FontAwesomeIcons.route,
@@ -318,5 +304,17 @@ class _HistoryPageState extends State<HistoryPage> {
         ),
       ),
     );
+  }
+
+  void openGoogleMaps(LatLng point1, LatLng point2) async {
+    final String googleMapsUrl =
+        'https://www.google.com/maps/dir/${point1.latitude},${point1.longitude}/${point2.latitude},${point2.longitude}';
+
+    if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+      await launchUrl(Uri.parse(googleMapsUrl));
+    } else {
+      await launchUrl(Uri.parse(
+          "https://play.google.com/store/apps/details?id=com.google.android.apps.maps&pcampaignid=web_share"));
+    }
   }
 }

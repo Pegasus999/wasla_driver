@@ -153,6 +153,7 @@ class _PhoneLoginState extends State<PhoneLogin> {
                                     borderRadius: BorderRadius.circular(16),
                                     color: Colors.white),
                                 child: TextField(
+                                  keyboardType: TextInputType.number,
                                   style: TextStyle(
                                       fontSize: 16,
                                       color: Constants.black,
