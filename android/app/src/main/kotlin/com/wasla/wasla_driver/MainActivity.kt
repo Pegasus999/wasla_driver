@@ -1,4 +1,4 @@
-package com.example.wasla_driver
+package com.wasla.wasla_driver
 
 import io.flutter.embedding.android.FlutterActivity
 

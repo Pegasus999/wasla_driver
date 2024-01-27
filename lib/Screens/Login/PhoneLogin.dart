@@ -112,7 +112,7 @@ class _PhoneLoginState extends State<PhoneLogin> {
                   width: MediaQuery.of(context).size.width,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: Constants.secondary,
+                    color: Constants.greenPop,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
@@ -193,9 +193,10 @@ class _PhoneLoginState extends State<PhoneLogin> {
                           },
                           style: ButtonStyle(
                               backgroundColor: phoneController.text.length == 9
-                                  ? MaterialStatePropertyAll(Constants.main)
+                                  ? MaterialStatePropertyAll(
+                                      Constants.orangePop)
                                   : MaterialStatePropertyAll(
-                                      Constants.main.withOpacity(0.4)),
+                                      Constants.orangePop.withOpacity(0.4)),
                               shape: MaterialStatePropertyAll(
                                   RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16))),
@@ -203,7 +204,7 @@ class _PhoneLoginState extends State<PhoneLogin> {
                                   Size(MediaQuery.of(context).size.width, 50))),
                           child: loading
                               ? Constants.loading
-                              : Text(
+                              : const Text(
                                   "Login",
                                   style: TextStyle(
                                       fontSize: 16,

@@ -91,7 +91,7 @@ class _HistoryPageState extends State<HistoryPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: Constants.secondary,
+            color: Constants.greenBack,
             borderRadius: BorderRadius.circular(30)),
         child: Column(
           children: [
@@ -105,7 +105,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.secondaryDarker),
+                        color: Constants.greenPop),
                     child: Row(
                       children: [
                         const Icon(
@@ -127,7 +127,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.main),
+                        color: Constants.orangePop),
                     child: Row(
                       children: [
                         const Icon(
@@ -159,7 +159,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     width: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.secondaryDarker),
+                        color: Constants.greenPop),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +170,7 @@ class _HistoryPageState extends State<HistoryPage> {
                         const Text(
                           "Date / Time",
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
+                              fontSize: 14, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 10),
                         Text(
@@ -178,7 +178,7 @@ class _HistoryPageState extends State<HistoryPage> {
                               ? trips[index].date.split('T')[0]
                               : "",
                           style: const TextStyle(
-                              fontSize: 16, color: Colors.black),
+                              fontSize: 15, color: Colors.black),
                         ),
                         const SizedBox(height: 10),
                         Text(
@@ -198,7 +198,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     width: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.secondaryDarker),
+                        color: Constants.greenPop),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -225,7 +225,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     width: 100,
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Constants.secondaryDarker),
+                        color: Constants.greenPop),
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

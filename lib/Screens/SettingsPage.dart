@@ -31,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  "Driver full name",
+                  "${widget.user.firstName} ${widget.user.lastName}", 
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ],

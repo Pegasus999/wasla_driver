@@ -5,8 +5,8 @@ import 'package:wasla_driver/Models/Driver.dart';
 import 'package:wasla_driver/Models/Trip.dart';
 
 class API {
-  // static String base_url = "https://waslaandk.onrender.com/api/";
-  static String base_url = "http://10.0.2.2:5000/api/";
+  static String base_url = "https://wasla.online/api/";
+  // static String base_url = "http://10.0.2.2:5000/api/";
 
   static Future login(BuildContext context, String phoneNumber) async {
     try {

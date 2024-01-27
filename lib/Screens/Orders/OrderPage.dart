@@ -158,7 +158,8 @@ class _OrderPageState extends State<OrderPage> {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       }
       double length = calculatePolylineLength(polylineCoordinates);
-      if (length < 200) {
+      print("object");
+      if (length < 2000) {
         if (!arrived) {
           if (mounted) {
             setState(() {
@@ -384,9 +385,9 @@ class _OrderPageState extends State<OrderPage> {
               ElevatedButton.icon(
                   style: ButtonStyle(
                       backgroundColor: seconds > 60
-                          ? MaterialStatePropertyAll(Constants.main)
+                          ? MaterialStatePropertyAll(Constants.orangePop)
                           : MaterialStatePropertyAll(
-                              Constants.main.withOpacity(0.4)),
+                              Constants.orangePop.withOpacity(0.4)),
                       minimumSize:
                           const MaterialStatePropertyAll(Size(150, 40))),
                   icon: const FaIcon(FontAwesomeIcons.circleCheck),
@@ -697,14 +698,7 @@ class _OrderPageState extends State<OrderPage> {
                     backgroundColor: Colors.green,
                     child: IconButton(
                         color: Colors.white,
-                        onPressed: () {
-                          print("CALL");
-                          startTimer();
-                          setState(() {
-                            arrived = true;
-                            onRoad = true;
-                          });
-                        },
+                        onPressed: () {},
                         icon: const FaIcon(FontAwesomeIcons.phone)),
                   ),
                 ],

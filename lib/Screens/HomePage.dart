@@ -194,16 +194,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   initSocket() {
-    // socket = IO.io("https://waslaandk.onrender.com", {
-    //   "transports": ['websocket'],
-    //   "autoConnect": false
-    // });
-
-    socket = IO.io("http://10.0.2.2:5000", {
+    socket = IO.io("https://wasla.online", {
       "transports": ['websocket'],
       "autoConnect": false
     });
-
     socket.connect();
     // socket!.emit("add", widget.user.id);
     socket.emit("add", {"userId": widget.user.id});

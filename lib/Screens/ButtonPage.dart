@@ -199,11 +199,11 @@ class _ButtonPageState extends State<ButtonPage>
                       AnimatedIconItem(
                         backgroundColor: Colors.black,
                         icon: Icon(Icons.power_settings_new_outlined,
-                            color: Constants.main),
+                            color: Constants.orangePop),
                       ),
                       AnimatedIconItem(
                         backgroundColor: Colors.black,
-                        icon: Icon(Icons.close, color: Constants.mainLight),
+                        icon: Icon(Icons.close, color: Constants.red),
                       ),
                     ],
                   ),
