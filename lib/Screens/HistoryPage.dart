@@ -114,7 +114,8 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          "${trips[index].client.firstName} ${trips[index].client.lastName}",
+                          // "${trips[index].client.firstName} ${trips[index].client.lastName}",
+                          "Client Name",
                           style: TextStyle(fontSize: 18),
                         )
                       ],

@@ -244,6 +244,7 @@ class _OrderPageState extends State<OrderPage> {
             width: MediaQuery.of(context).size.width,
             child: Stack(
               alignment: Alignment.center,
+              
               children: [_map(), _bottomContrainer()],
             ),
           ),
@@ -344,7 +345,7 @@ class _OrderPageState extends State<OrderPage> {
                     child: IconButton(
                         color: Colors.white,
                         onPressed: () {
-                          print("CALL");
+
                         },
                         icon: const FaIcon(FontAwesomeIcons.phone)),
                   ),
@@ -378,8 +379,8 @@ class _OrderPageState extends State<OrderPage> {
                       minimumSize: MaterialStatePropertyAll(Size(150, 40))),
                   icon: const FaIcon(FontAwesomeIcons.route),
                   onPressed: () {
-                    openGoogleMaps(LatLng(widget.trip.pickUpLocationLatitude,
-                        widget.trip.pickUpLocationLongtitude));
+                    openGoogleMaps(LatLng(widget.trip.destinationLatitude,
+                        widget.trip.destinationLongtitude));
                   },
                   label: const Text("Get directions")),
               ElevatedButton.icon(
